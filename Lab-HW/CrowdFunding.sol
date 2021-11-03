@@ -2,13 +2,20 @@
 
 pragma solidity >=0.8.0 <=0.8.9;
 
+interface ISponsorFunding {
+
+    function reedemPromise() external;
+}
+
 contract CrowdFunding {
     address admin;
     address dfAddress;
+    address sponsorAddress;
     uint256 fundingGoal;
     uint256 currentFunding;
-    uint256 sponsored;
+    uint256 sponsoredAmount;
     bool goalReached;
+    bool promisedReceived;
     bool sponsorshipReceived;
 
     mapping(address => contributor) contributors;
@@ -28,22 +35,24 @@ contract CrowdFunding {
         admin = msg.sender;
         fundingGoal = goal;
         currentFunding = 0;
-        sponsorshipReceived = false;
         goalReached = false;
         dfAddress = _dfAddress;
+        promisedReceived = false;
+        sponsorshipReceived = false;
     }
 
     function addContributor(string calldata _name) external payable {
+        require(promisedReceived, "Sponsorship not ready");
         require(msg.value > 0, "You need to contribute with something!");
         require(
-            !goalReached && msg.value + currentFunding <= fundingGoal,
+            !goalReached && msg.value + currentFunding + sponsoredAmount <= fundingGoal,
             "I don't need that much, check the current funding"
         );
 
         uint256 value = contributors[msg.sender].contributed + msg.value;
         contributors[msg.sender] = contributor(_name, msg.sender, value);
         currentFunding += msg.value;
-        if (currentFunding == fundingGoal) {
+        if (currentFunding + sponsoredAmount == fundingGoal) {
             goalReached = true;
         }
     }
@@ -64,6 +73,10 @@ contract CrowdFunding {
     function getCurrentFunding() public view returns (uint256) {
         return currentFunding;
     }
+    
+     function getFundingGoal() public view returns (uint256) {
+        return fundingGoal;
+    }
 
     function getContributor(address _address)
         public
@@ -78,7 +91,8 @@ contract CrowdFunding {
         return goalReached;
     }
 
-    function distribute() public onlyAdmin {
+    function distribute() public payable  {
+        
         require(
             goalReached && sponsorshipReceived,
             "Not ready, goal not reached or sponsorship not received"
@@ -86,7 +100,25 @@ contract CrowdFunding {
         payable(dfAddress).transfer(fundingGoal);
     }
 
-    function receiveSponsorship() public payable {
+    function receiveSponsorship() public payable{
+        require(msg.sender == sponsorAddress);
+        require(msg.value == sponsoredAmount);
         sponsorshipReceived = true;
+    }
+
+    function promiseFounds(uint _promisedFunds) external {
+        require(_promisedFunds < fundingGoal, "Too much sponsorship");
+        promisedReceived = true;
+        sponsoredAmount = _promisedFunds;
+        sponsorAddress = msg.sender;
+    }
+
+    function reedemPromise() onlyAdmin() public {
+        ISponsorFunding sf =  ISponsorFunding(sponsorAddress);
+        sf.reedemPromise();
+    }
+
+    receive() external payable {
+        receiveSponsorship();
     }
 }

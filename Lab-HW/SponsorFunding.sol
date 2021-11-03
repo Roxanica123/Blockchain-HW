@@ -20,7 +20,7 @@ interface ICrowdFunding {
     
     function promiseFounds(uint) external ;
     
-    function reedemPromise() payable external;
+    function receiveSponsorship() external payable;
 }
 
 
@@ -69,15 +69,16 @@ contract SponsorFunding {
     }
     
     
-    function reedemPromise() payable external  {
+    function reedemPromise() external  {
         require(!alreadyGivePrommisedAmmount,"Already give the prommised ammount!");
         require(msg.sender == crowdFoundingContractAdr || msg.sender == owner);
- 
         
         ICrowdFunding cf =  ICrowdFunding(crowdFoundingContractAdr);
-        require(cf.isGoalReached(), "The gol has not been reched!");
+    
+        //require( msg.sender.balance + prommisedAmmount == cf.getFundingGoal() , "The gol has not been reched!");
+
+        payable(msg.sender).transfer(prommisedAmmount);
         
-        payable(crowdFoundingContractAdr).transfer(prommisedAmmount);
         
         alreadyGivePrommisedAmmount = true;
     }
