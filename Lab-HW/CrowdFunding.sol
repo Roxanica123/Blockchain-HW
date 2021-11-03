@@ -28,12 +28,27 @@ contract CrowdFunding {
     function addContributor(string calldata _name) payable external {
         require(msg.value > 0, "You need to contribute with something!");
         require(!goalReached && msg.value + currentFunding <= fundingGoal, "I don't need that much, check the current funding");
-
-        contributors[msg.sender] = contributor(_name, msg.sender, msg.value);
+        
+        uint value = contributors[msg.sender].contributed + msg.value;
+        contributors[msg.sender] = contributor(_name, msg.sender, value);
         currentFunding += msg.value;
         if (currentFunding == fundingGoal) {
             goalReached = true;
         }
+    }
+
+    function withdrawContribution(uint sum) public {
+        require(!goalReached, "The goal has been reached, you cannot withdraw");
+        uint contributed = contributors[msg.sender].contributed;
+        require(contributed>=sum, "You have hot contributed with that much");
+        if(sum == contributed){
+            delete contributors[msg.sender];
+        }
+        else{
+            contributors[msg.sender].contributed -= sum;
+        }
+        
+        currentFunding -= sum;
     }
 
     function getCurrentFunding() view public returns (uint) {
