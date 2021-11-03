@@ -47,7 +47,7 @@ contract CrowdFunding {
         else{
             contributors[msg.sender].contributed -= sum;
         }
-        
+        payable(msg.sender).transfer(sum);
         currentFunding -= sum;
     }
 
