@@ -4,10 +4,12 @@ pragma solidity >=0.8.0 <=0.8.9;
 
 contract CrowdFunding {
     address admin;
+    address dfAddress;
     uint256 fundingGoal;
     uint256 currentFunding;
-    uint256 sponsored; 
+    uint256 sponsored;
     bool goalReached;
+    bool sponsorshipReceived;
 
     mapping(address => contributor) contributors;
 
@@ -17,11 +19,18 @@ contract CrowdFunding {
         uint256 contributed;
     }
 
-    constructor(uint256 goal) {
+    modifier onlyAdmin() {
+        require(msg.sender == admin, "You don't have the permission");
+        _;
+    }
+
+    constructor(uint256 goal, address _dfAddress) {
         admin = msg.sender;
         fundingGoal = goal;
         currentFunding = 0;
+        sponsorshipReceived = false;
         goalReached = false;
+        dfAddress = _dfAddress;
     }
 
     function addContributor(string calldata _name) external payable {
@@ -67,5 +76,17 @@ contract CrowdFunding {
 
     function isGoalReached() public view returns (bool) {
         return goalReached;
+    }
+
+    function distribute() public onlyAdmin {
+        require(
+            goalReached && sponsorshipReceived,
+            "Not ready, goal not reached or sponsorship not received"
+        );
+        payable(dfAddress).transfer(fundingGoal);
+    }
+
+    function receiveSponsorship() public payable {
+        sponsorshipReceived = true;
     }
 }

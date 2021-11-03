@@ -46,7 +46,7 @@ contract DistributeFunding {
         return (wantedRecipient.name, wantedRecipient.percent);
     }
 
-    function disctribute() public payable {
+    function distribute() public payable {
         require(msg.value > 0, "There must be something to distribute");
         require(remainingPercent == 0, "The are not enough recipients");
         recipient memory r;
@@ -54,5 +54,9 @@ contract DistributeFunding {
             r = recipients[i];
             payable(r.account).transfer((msg.value * r.percent) / 100);
         }
+    }
+
+    receive() external payable {
+        distribute();
     }
 }
