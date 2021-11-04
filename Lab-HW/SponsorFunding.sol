@@ -12,7 +12,7 @@ interface ICrowdFunding {
 
     function addContributor(string calldata _name) payable external ;
     
-    function giveDonation(address a, uint b, uint c) payable external returns (bool) ;
+    function giveDonation(address, uint, uint) payable external returns (bool) ;
     
     function isGoalReached() view external returns (bool);
     
@@ -44,13 +44,11 @@ contract SponsorFunding {
 
         prommisedAmmount = _percent * goal / 100;
         
-        require(prommisedAmmount <= msg.value, "You didn't send the founds required!");
-        
-        //require(.howMuchDoWeNeed() >= prommisedAmmount + ammount," You send more founds then requred!");
-
+        require(prommisedAmmount <= msg.value, "You didn't send the funds required!");
+    
         
         myAddress = address(this);
-        // payable(myAddress).transfer(msg.value);
+        
         // return the extra money
         payable(msg.sender).transfer(msg.value - (prommisedAmmount) );
         
@@ -75,13 +73,15 @@ contract SponsorFunding {
  
         
         ICrowdFunding cf =  ICrowdFunding(crowdFoundingContractAdr);
-        require(cf.isGoalReached(), "The gol has not been reched!");
+       
+        require( msg.sender.balance + prommisedAmmount == cf.getFundingGoal() , "The gol has not been reched!");
         
-        payable(crowdFoundingContractAdr).transfer(prommisedAmmount);
+        payable(msg.sender).transfer(prommisedAmmount);
         
         alreadyGivePrommisedAmmount = true;
     }
     
+
  
 }
 
