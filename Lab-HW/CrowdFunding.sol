@@ -106,7 +106,7 @@ contract CrowdFunding {
     }
 
     function promiseFounds(uint _promisedFunds) external {
-        require(_promisedFunds < fundingGoal, "Too much sponsorship");
+        require(_promisedFunds + currentFunding <= fundingGoal, "Too much sponsorship");
         promisedReceived = true;
         sponsoredAmount = _promisedFunds;
         sponsorAddress = msg.sender;

@@ -27,7 +27,6 @@ interface ICrowdFunding {
 contract SponsorFunding {
     uint  prommisedAmmount;
     
-    address public myAddress;
     address public crowdFoundingContractAdr;
     address owner;
     
@@ -37,16 +36,13 @@ contract SponsorFunding {
     
 
     constructor(address _crowdFoundingContractAdr , uint _percent) payable{
-        require(msg.value > 0, "Empty account!");
+        require(msg.value > 0, "Pay me!");
         
-    
         uint goal = ICrowdFunding(_crowdFoundingContractAdr).getFundingGoal();
 
         prommisedAmmount = _percent * goal / 100;
         
         require(prommisedAmmount <= msg.value, "You didn't send the founds required!");
-        
-        myAddress = address(this);
         
         // return the extra money
         payable(msg.sender).transfer(msg.value - (prommisedAmmount) );
@@ -61,7 +57,7 @@ contract SponsorFunding {
     }
     
     
-    function sendPromise() payable external {
+    function sendPromise() external {
         ICrowdFunding(crowdFoundingContractAdr).promiseFounds(prommisedAmmount);
     }
     
@@ -75,7 +71,6 @@ contract SponsorFunding {
         require( msg.sender.balance + prommisedAmmount == cf.getFundingGoal() , "The gol has not been reched!");
 
         cf.receiveSponsorship{value:prommisedAmmount}();
-        
         
         alreadyGivePrommisedAmmount = true;
     }
