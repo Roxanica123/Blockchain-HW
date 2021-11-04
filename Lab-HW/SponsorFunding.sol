@@ -75,9 +75,9 @@ contract SponsorFunding {
         
         ICrowdFunding cf =  ICrowdFunding(crowdFoundingContractAdr);
     
-        //require( msg.sender.balance + prommisedAmmount == cf.getFundingGoal() , "The gol has not been reched!");
+        require( msg.sender.balance + prommisedAmmount >= cf.getFundingGoal() , "The gol has not been reched!");
 
-        payable(msg.sender).transfer(prommisedAmmount);
+        cf.receiveSponsorship{value:prommisedAmmount}();
         
         
         alreadyGivePrommisedAmmount = true;
